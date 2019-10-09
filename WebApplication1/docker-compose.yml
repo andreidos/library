@@ -1,0 +1,17 @@
+﻿version: '3.4'
+
+services:
+    library:
+        build: .
+        ports:
+          - 5000:80
+        restart: always
+        depends_on:
+          - mongoDB
+    mongoDB:
+        image: mongo
+        restart: always
+        volumes:
+            - /data:/data/db
+        ports:
+          - 27017:27017
