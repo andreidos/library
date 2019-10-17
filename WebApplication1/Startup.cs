@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -36,10 +38,21 @@ namespace WebApplication1
          var booksRepository = new BooksRepository(libraryContext);
          var writersRepository = new WritersRepository(libraryContext);
 
+         services.AddRouting();
+
          services.AddSingleton<IBooksRepository>(booksRepository);
          services.AddSingleton<IWritersRepository>(writersRepository);
 
+         //services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+         //services.AddScoped<IUrlHelper>(factory =>
+         //{
+         //   var actionContext = factory.GetService<IActionContextAccessor>()
+         //                                  .ActionContext;
+         //   return new UrlHelper(actionContext);
+         //});
+
          services.AddControllers();
+
       }
 
       // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

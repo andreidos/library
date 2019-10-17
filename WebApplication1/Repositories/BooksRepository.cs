@@ -17,27 +17,41 @@ namespace WebApplication1.Repositories
       {
          libraryContext = context;
       }
-      public async Task AddBook(BookMongoDTO book)
+      public BookMongoDTO AddBook(BookMongoDTO book)
       {
-         await libraryContext.Books.InsertOneAsync(book);
+         try
+         {
+            libraryContext.Books.InsertOne(book);
+            return book;
+         }
+         catch (Exception)
+         {
+            return null;
+         }
       }
 
-      public async Task DeleteBook(string id)
+      public bool DeleteBook(string id)
       {
-         await libraryContext.Books.DeleteOneAsync(Builders<BookMongoDTO>.Filter.Eq(b => b.Id, id));
+         var result = libraryContext.Books.DeleteOne(Builders<BookMongoDTO>.Filter.Eq(b => b.Id, id));
+         return result.IsAcknowledged && result.DeletedCount > 0;
       }
 
-      public async Task<IEnumerable<BookMongoDTO>> GetAllBooks()
+      public IEnumerable<BookMongoDTO> GetAllBooks()
       {
-         return await libraryContext.Books.Find(_ => true).ToListAsync();
+         return libraryContext.Books.Find(_ => true).ToList().OrderBy(b=>b.Title);
       }
 
-      public async Task<bool> UpdateBook(BookMongoDTO book)
+      public BookMongoDTO GetBook(string id)
+      {
+         return libraryContext.Books.Find(b => b.Id == id).FirstOrDefault();
+      }
+
+      public bool UpdateBook(BookMongoDTO book)
       {
          ReplaceOneResult updateResult =
-              await libraryContext
+              libraryContext
                       .Books
-                      .ReplaceOneAsync(
+                      .ReplaceOne(
                           filter: g => g.Id == book.Id,
                           replacement: book);
          return updateResult.IsAcknowledged

@@ -1,9 +1,11 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApplication1.Collections;
+using WebApplication1.Helpers;
 using WebApplication1.Models;
 
 namespace WebApplication1.Repositories
@@ -18,33 +20,49 @@ namespace WebApplication1.Repositories
          libraryContext = context;
       }
        
-      public async Task AddWriter(WriterMongoDTO writer)
+      public string AddWriter(WriterMongoDTO writer)
       {
-         await libraryContext.Writers.InsertOneAsync(writer);
+         try
+         {
+            var findQuery = libraryContext.Writers.Find(w => w.Name == writer.Name && w.BirthDate == writer.BirthDate);
+            if(findQuery.CountDocuments() > 0)
+            {
+               return null;
+            }
+            libraryContext.Writers.InsertOne(writer);
+            return writer.Id;
+         }
+         catch (Exception e)
+         {
+            return null;
+         }
       }
 
-      public async Task DeleteWriter(string id)
+      public bool DeleteWriter(string id)
       {
-         await libraryContext.Writers.DeleteOneAsync(Builders<WriterMongoDTO>.Filter.Eq(b => b.Id, id));
+         var result = libraryContext.Writers.DeleteOne(Builders<WriterMongoDTO>.Filter.Eq(b => b.Id, id));
+         return result.IsAcknowledged && result.DeletedCount > 0;
       }
 
-      public async Task<IEnumerable<WriterMongoDTO>> GetAllWriters()
+      public PagedList<WriterMongoDTO> GetAllWriters(int page, int pageSize)
       {
-         return await libraryContext.Writers.Find(_ => true).ToListAsync();
+         //return libraryContext.Writers.Find(_ => true).ToList().OrderBy(a => a.Name).Skip(page);
+         var initialCollection = libraryContext.Writers.Find(_ => true).SortBy(w=>w.Name).ToList();
+
+         return PagedList<WriterMongoDTO>.Create(initialCollection, page, pageSize);
       }
 
-      public async Task<WriterMongoDTO> FindWriter(WriterMongoDTO writer)
+      public WriterMongoDTO FindWriter(string id)
       {
-         var writers = await GetAllWriters();
-         return writers.Single(w => w.Name == writer.Name && w.BirthDate == writer.BirthDate);
+         return libraryContext.Writers.Find(w => w.Id == id).SingleOrDefault();
       }
 
-      public async Task<bool> UpdateWriter(WriterMongoDTO writer)
+      public bool UpdateWriter(WriterMongoDTO writer)
       {
          ReplaceOneResult updateResult =
-              await libraryContext
+              libraryContext
                       .Writers
-                      .ReplaceOneAsync(
+                      .ReplaceOne(
                           filter: g => g.Id == writer.Id,
                           replacement: writer);
          return updateResult.IsAcknowledged

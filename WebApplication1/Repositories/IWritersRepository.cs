@@ -1,22 +1,23 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebApplication1.Helpers;
 using WebApplication1.Models;
 
 namespace WebApplication1.Repositories
 {
    public interface IWritersRepository
    {
+      PagedList<WriterMongoDTO> GetAllWriters(int page, int pageSize);
 
-      Task<IEnumerable<WriterMongoDTO>> GetAllWriters();
+      WriterMongoDTO FindWriter(string id);
 
-      Task<WriterMongoDTO> FindWriter(WriterMongoDTO writer);
+      string AddWriter(WriterMongoDTO writer);
 
-      Task AddWriter(WriterMongoDTO writer);
+      bool UpdateWriter(WriterMongoDTO writer);
 
-      Task<bool> UpdateWriter(WriterMongoDTO writer);
-
-      Task DeleteWriter(string id);
+      bool DeleteWriter(string id);
    }
 }
