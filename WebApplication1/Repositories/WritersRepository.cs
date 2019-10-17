@@ -20,16 +20,18 @@ namespace WebApplication1.Repositories
          libraryContext = context;
       }
        
-      public string AddWriter(WriterMongoDTO writer)
+      public async Task<string> AddWriter(WriterMongoDTO writer)
       {
          try
          {
-            var findQuery = libraryContext.Writers.Find(w => w.Name == writer.Name && w.BirthDate == writer.BirthDate);
-            if(findQuery.CountDocuments() > 0)
+            var findQuery = await libraryContext.Writers.Find(w => w.Name == writer.Name && w.BirthDate == writer.BirthDate).ToListAsync();
+
+            if(findQuery.Count() > 0)
             {
                return null;
             }
-            libraryContext.Writers.InsertOne(writer);
+
+            await libraryContext.Writers.InsertOneAsync(writer);
             return writer.Id;
          }
          catch (Exception e)
@@ -38,31 +40,42 @@ namespace WebApplication1.Repositories
          }
       }
 
-      public bool DeleteWriter(string id)
+      public async Task<bool> DeleteWriter(string id)
       {
-         var result = libraryContext.Writers.DeleteOne(Builders<WriterMongoDTO>.Filter.Eq(b => b.Id, id));
+         var result = await libraryContext.Writers.DeleteOneAsync(Builders<WriterMongoDTO>.Filter.Eq(b => b.Id, id));
          return result.IsAcknowledged && result.DeletedCount > 0;
       }
 
-      public PagedList<WriterMongoDTO> GetAllWriters(int page, int pageSize)
+      public async Task<PagedList<WriterMongoDTO>> GetAllWriters(int page, int pageSize)
       {
          //return libraryContext.Writers.Find(_ => true).ToList().OrderBy(a => a.Name).Skip(page);
-         var initialCollection = libraryContext.Writers.Find(_ => true).SortBy(w=>w.Name).ToList();
+         var initialCollection = await libraryContext.Writers.Find(_ => true).ToListAsync();
 
          return PagedList<WriterMongoDTO>.Create(initialCollection, page, pageSize);
       }
 
-      public WriterMongoDTO FindWriter(string id)
+      public async Task<WriterMongoDTO> FindWriter(string id)
       {
-         return libraryContext.Writers.Find(w => w.Id == id).SingleOrDefault();
+         var filter = Builders<WriterMongoDTO>.Filter.Eq("Id", id);
+
+         try
+         {
+            return await libraryContext.Writers
+                            .Find(filter)
+                            .FirstOrDefaultAsync();
+         }
+         catch (Exception)
+         {
+            return null;
+         }
       }
 
-      public bool UpdateWriter(WriterMongoDTO writer)
+      public async Task<bool> UpdateWriter(WriterMongoDTO writer)
       {
-         ReplaceOneResult updateResult =
+         ReplaceOneResult updateResult = await
               libraryContext
                       .Writers
-                      .ReplaceOne(
+                      .ReplaceOneAsync(
                           filter: g => g.Id == writer.Id,
                           replacement: writer);
          return updateResult.IsAcknowledged

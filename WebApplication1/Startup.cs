@@ -38,7 +38,6 @@ namespace WebApplication1
          var booksRepository = new BooksRepository(libraryContext);
          var writersRepository = new WritersRepository(libraryContext);
 
-         services.AddRouting();
 
          services.AddSingleton<IBooksRepository>(booksRepository);
          services.AddSingleton<IWritersRepository>(writersRepository);

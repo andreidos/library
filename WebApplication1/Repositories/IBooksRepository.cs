@@ -9,15 +9,15 @@ namespace WebApplication1.Repositories
 {
    public interface IBooksRepository
    {
-      IEnumerable<BookMongoDTO> GetAllBooks();
+      Task<List<BookMongoDTO>> GetAllBooks();
 
-      BookMongoDTO GetBook(string id);
+      Task<BookMongoDTO> GetBook(string id);
 
-      BookMongoDTO AddBook(BookMongoDTO book);
+      Task<BookMongoDTO> AddBook(BookMongoDTO book);
 
-      bool UpdateBook(BookMongoDTO book);
+      Task<bool> UpdateBook(BookMongoDTO book);
 
-      bool DeleteBook(string id);
+      Task<bool> DeleteBook(string id);
 
    }
 }

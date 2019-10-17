@@ -10,14 +10,14 @@ namespace WebApplication1.Repositories
 {
    public interface IWritersRepository
    {
-      PagedList<WriterMongoDTO> GetAllWriters(int page, int pageSize);
+      Task<PagedList<WriterMongoDTO>> GetAllWriters(int page, int pageSize);
 
-      WriterMongoDTO FindWriter(string id);
+      Task<WriterMongoDTO> FindWriter(string id);
 
-      string AddWriter(WriterMongoDTO writer);
+      Task<string> AddWriter(WriterMongoDTO writer);
 
-      bool UpdateWriter(WriterMongoDTO writer);
+      Task<bool> UpdateWriter(WriterMongoDTO writer);
 
-      bool DeleteWriter(string id);
+      Task<bool> DeleteWriter(string id);
    }
 }

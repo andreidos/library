@@ -24,18 +24,18 @@ namespace WebApplication1.Controllers
       }
 
       [HttpGet]
-      public IActionResult GetBooks()
+      public async Task<ActionResult<IEnumerable<BookMongoDTO>>> GetBooks()
       {
-         var books = booksRepository.GetAllBooks();
+         var books = await booksRepository.GetAllBooks();
 
          return Ok(books.Select((book) =>
                       CreateLinksForBook(book)));
       }
 
       [HttpGet("{id}", Name ="GetBook")]
-      public IActionResult GetBook(string id)
+      public async Task<ActionResult<BookMongoDTO>> GetBook(string id)
       {
-         var result = booksRepository.GetBook(id);
+         var result = await booksRepository.GetBook(id);
          if(result != null)
          {
             return Ok(CreateLinksForBook(result));
@@ -46,9 +46,9 @@ namespace WebApplication1.Controllers
       }
 
       [HttpPost]
-      public IActionResult AddBook([FromBody] BookMongoDTO book)
+      public async Task<ActionResult<BookMongoDTO>> AddBook([FromBody] BookMongoDTO book)
       {
-         var author = writersRepository.FindWriter(book.Writer.Id);
+         var author = await writersRepository.FindWriter(book.Writer.Id);
          if(author != null)
          {
             book.Writer = author;
@@ -61,25 +61,25 @@ namespace WebApplication1.Controllers
                return BadRequest();
             }
          }
-         var addBookResult = booksRepository.AddBook(book);
+         var addBookResult = await booksRepository.AddBook(book);
          if (addBookResult != null)
          {
             return Ok(CreateLinksForBook(addBookResult));
          }
          else
          {
-            writersRepository.DeleteWriter(book.Writer.Id);
+            await writersRepository.DeleteWriter(book.Writer.Id);
             return BadRequest();
          }
       }
 
       [HttpPut(Name ="UpdateBook")]
-      public IActionResult UpdateBook(BookMongoDTO book)
+      public async Task<IActionResult> UpdateBook(BookMongoDTO book)
       {
-         var result = booksRepository.UpdateBook(book);
+         var result = await booksRepository.UpdateBook(book);
          if (result)
          {
-            return Ok(result);
+            return Ok("Resource updated!");
          }
          else
          {
@@ -88,9 +88,9 @@ namespace WebApplication1.Controllers
       }
 
       [HttpPut("Writers", Name ="UpdateWriter")]
-      public IActionResult UpdateWriter([FromBody] WriterMongoDTO writer)
+      public async Task<IActionResult> UpdateWriter([FromBody] WriterMongoDTO writer)
       {
-         var result = writersRepository.UpdateWriter(writer);
+         var result = await writersRepository.UpdateWriter(writer);
          if (result == true)
          {
             return Ok(result);
@@ -102,9 +102,9 @@ namespace WebApplication1.Controllers
       }
 
       [HttpDelete("{id}", Name ="DeleteBook")]
-      public IActionResult RemoveBook(string id)
+      public async Task<IActionResult> RemoveBook(string id)
       {
-         var result = booksRepository.DeleteBook(id);
+         var result = await booksRepository.DeleteBook(id);
          if (result)
          {
             return Ok("Content removed");
@@ -116,9 +116,9 @@ namespace WebApplication1.Controllers
       }
 
       [HttpDelete("writers/{id}", Name ="DeleteWriter")]
-      public IActionResult RemoveWriter(string id)
+      public async Task<IActionResult> RemoveWriter(string id)
       {
-         var result = writersRepository.DeleteWriter(id);
+         var result = await writersRepository.DeleteWriter(id);
          if (result)
          {
             return Ok("Content removed");
@@ -130,12 +130,16 @@ namespace WebApplication1.Controllers
       }
 
       [HttpGet("Writers")]
-      public IActionResult GetWriters(Pagination pageInfo)
+      public async Task<IActionResult> GetWriters([FromQuery] Pagination page)
       {
-         var result = writersRepository.GetAllWriters(pageInfo.PageNumber, pageInfo.PageSize);
+         if(page == null)
+         {
+            page = new Pagination();
+         }
+         var result = await writersRepository.GetAllWriters(page.PageNumber, page.PageSize);
          if(result.Count() > 0)
          {
-            return Ok(result.Select((writer) => CreateLinksForWriter(writer)));
+            return Ok(result.OrderBy(w => w.Name).Select((writer) => CreateLinksForWriter(writer)));
          }
          else
          {
@@ -144,9 +148,9 @@ namespace WebApplication1.Controllers
       }
 
       [HttpGet("Writers/{id}", Name = "GetWriter")]
-      public IActionResult FindWriter(string id)
+      public async Task<IActionResult> FindWriter(string id)
       {
-         var result = writersRepository.FindWriter(id);
+         var result = await writersRepository.FindWriter(id);
          if(result != null)
          {
             return Ok(CreateLinksForWriter(result));

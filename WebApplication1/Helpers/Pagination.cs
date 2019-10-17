@@ -7,8 +7,13 @@ namespace WebApplication1.Helpers
 {
    public class Pagination
    {
+      public Pagination()
+      {
+
+      }
+
       public int PageNumber { get; set; } = 0;
 
-      public int PageSize { get; set; } = 5;
+      public int PageSize { get; set; } = 50;
    }
 }

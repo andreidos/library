@@ -17,11 +17,11 @@ namespace WebApplication1.Repositories
       {
          libraryContext = context;
       }
-      public BookMongoDTO AddBook(BookMongoDTO book)
+      public async Task<BookMongoDTO> AddBook(BookMongoDTO book)
       {
          try
          {
-            libraryContext.Books.InsertOne(book);
+            await libraryContext.Books.InsertOneAsync(book);
             return book;
          }
          catch (Exception)
@@ -30,28 +30,39 @@ namespace WebApplication1.Repositories
          }
       }
 
-      public bool DeleteBook(string id)
+      public async Task<bool> DeleteBook(string id)
       {
-         var result = libraryContext.Books.DeleteOne(Builders<BookMongoDTO>.Filter.Eq(b => b.Id, id));
+         var result = await libraryContext.Books.DeleteOneAsync(Builders<BookMongoDTO>.Filter.Eq(b => b.Id, id));
          return result.IsAcknowledged && result.DeletedCount > 0;
       }
 
-      public IEnumerable<BookMongoDTO> GetAllBooks()
+      public Task<List<BookMongoDTO>> GetAllBooks()
       {
-         return libraryContext.Books.Find(_ => true).ToList().OrderBy(b=>b.Title);
+         return libraryContext.Books.Find(_ => true).ToListAsync();
       }
 
-      public BookMongoDTO GetBook(string id)
+      public async Task<BookMongoDTO> GetBook(string id)
       {
-         return libraryContext.Books.Find(b => b.Id == id).FirstOrDefault();
+         var filter = Builders<BookMongoDTO>.Filter.Eq("Id", id);
+
+         try
+         {
+            return await libraryContext.Books
+                            .Find(filter)
+                            .FirstOrDefaultAsync();
+         }
+         catch (Exception)
+         {
+            return null;
+         }
       }
 
-      public bool UpdateBook(BookMongoDTO book)
+      public async Task<bool> UpdateBook(BookMongoDTO book)
       {
-         ReplaceOneResult updateResult =
+         var updateResult = await
               libraryContext
                       .Books
-                      .ReplaceOne(
+                      .ReplaceOneAsync(
                           filter: g => g.Id == book.Id,
                           replacement: book);
          return updateResult.IsAcknowledged
